@@ -33,6 +33,7 @@ class AgentTools
   end
 
   def self.execute(name, input)
+    debugger
     case name
     when "calculator"
       CalculatorTool.call(input["expression"])
