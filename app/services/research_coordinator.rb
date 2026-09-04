@@ -70,4 +70,35 @@ class ResearchCoordinator
 
 		JSON.parse(response.content)["subtopics"]
 	end
+
+	def research_subtopic(topic:, subtopic:)
+		research_goal = <<~GOAL
+			Research #{subtopic} as part of #{topic}.
+
+			Cover:
+			- key technologies
+			- current applications
+			- advantages
+			- limitations
+			- future potential
+		GOAL
+
+		web_result = @web_agent.research(
+			topic: topic,
+			subtopic: subtopic,
+			research_goal: research_goal
+		)
+
+		document_result = @document_agent.analyze(
+			topic: topic,
+			subtopic: subtopic,
+			research_goal: research_goal,
+			previous_results: web_result
+		)
+
+		{
+			web_research: web_result,
+			document_analysis: document_result
+		}
+	end
 end
