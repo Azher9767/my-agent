@@ -15,46 +15,64 @@ class ResearchCoordinator
     with each other, so all required context must be explicitly passed.
   PROMPT
 
-	def initialize
-		@chat = RubyLLM.chat(
-			provider: :ollama,
-			model: "llama3.2:3b",
-			assume_model_exists: true
-		)
+  def initialize
+    @chat = RubyLLM.chat(
+      provider: :ollama,
+      model: "llama3.2:3b",
+      assume_model_exists: true
+    )
 
-		@web_agent = WebResearchAgent.new
-		@document_agent = DocumentAnalysisAgent.new
-		@aggregator = ResearchAggregator.new
-	end
+    @web_agent = WebResearchAgent.new
+    @document_agent = DocumentAnalysisAgent.new
+    @aggregator = ResearchAggregator.new
+  end
 
-	def research(topic)
-		subtopics = decompose_topic(topic)
+  def research(topic)
+    subtopics = decompose_topic(topic)
 
-		results = {}
+    results = {}
 
-		subtopics.each do |subtopic|
-			results[subtopic] = research_subtopic(
-				topic: topic,
-				subtopic: subtopic
-			)
-		end
+    subtopics.each do |subtopic|
+      results[subtopic] = research_subtopic(
+      topic: topic,
+      subtopic: subtopic
+      )
+    end
 
-		coverage = @aggregator.evaluate_coverage(
-			topic: topic,
-			subtopics: subtopics,
-			results: results
-		)
+    coverage = nil
+    iteration = 0
 
-		{
-			topic: topic,
-			subtopics: subtopics,
-			results: results,
-			coverage: coverage
-		}
-	end
+    while iteration < 3
+      coverage = @aggregator.evaluate_coverage(
+      topic: topic,
+      subtopics: subtopics,
+      results: results
+      )
+
+      gaps = coverage["gaps"]
+
+      break if gaps.empty?
+
+      gaps.each do |gap|
+      results[gap] = research_subtopic(
+        topic: topic,
+        subtopic: gap
+      )
+      end
+
+      iteration += 1
+    end
+
+    {
+      topic: topic,
+      subtopics: subtopics,
+      results: results,
+      coverage: coverage
+    }
+  end
 
   def decompose_topic(topic)
-		response = @chat.ask(<<~PROMPT)
+    response = @chat.ask(<<~PROMPT)
 			#{SYSTEM_PROMPT}
 
 			Research topic:
@@ -88,13 +106,13 @@ class ResearchCoordinator
 					"Fusion energy"
 				]
 			}
-		PROMPT
+    PROMPT
 
-		JSON.parse(response.content)["subtopics"]
-	end
+    JSON.parse(response.content)["subtopics"]
+  end
 
-	def research_subtopic(topic:, subtopic:)
-		research_goal = <<~GOAL
+  def research_subtopic(topic:, subtopic:)
+    research_goal = <<~GOAL
 			Research #{subtopic} as part of #{topic}.
 
 			Cover:
@@ -103,24 +121,24 @@ class ResearchCoordinator
 			- advantages
 			- limitations
 			- future potential
-		GOAL
+    GOAL
 
-		web_result = @web_agent.research(
-			topic: topic,
-			subtopic: subtopic,
-			research_goal: research_goal
-		)
+    web_result = @web_agent.research(
+      topic: topic,
+      subtopic: subtopic,
+      research_goal: research_goal
+    )
 
-		document_result = @document_agent.analyze(
-			topic: topic,
-			subtopic: subtopic,
-			research_goal: research_goal,
-			previous_results: web_result
-		)
+    document_result = @document_agent.analyze(
+      topic: topic,
+      subtopic: subtopic,
+      research_goal: research_goal,
+      previous_results: web_result
+    )
 
-		{
-			web_research: web_result,
-			document_analysis: document_result
-		}
-	end
+    {
+      web_research: web_result,
+      document_analysis: document_result
+    }
+  end
 end

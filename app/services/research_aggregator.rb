@@ -22,6 +22,10 @@ class ResearchAggregator
 
       Evaluate how completely the required subtopics are covered.
 
+      Only evaluate the exact subtopics provided above.
+      Do not rename, merge, replace, or invent subtopics.
+      Every required subtopic must appear in the "coverage" object.
+
       For every required subtopic classify it as:
       - well-covered
       - partially-covered
