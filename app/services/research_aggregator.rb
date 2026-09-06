@@ -22,7 +22,7 @@ class ResearchAggregator
 
       Evaluate how completely the required subtopics are covered.
 
-      For every required subtopic, classify it as:
+      For every required subtopic classify it as:
       - well-covered
       - partially-covered
       - missing
@@ -42,6 +42,8 @@ class ResearchAggregator
       }
     PROMPT
 
-    JSON.parse(response.content)
+    json_text = response.content[/\{.*\}/m]
+
+    JSON.parse(json_text)
   end
 end

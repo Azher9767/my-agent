@@ -27,9 +27,31 @@ class ResearchCoordinator
 		@aggregator = ResearchAggregator.new
 	end
 
-  def research(topic)
-    # We'll implement this step by step.
-  end
+	def research(topic)
+		subtopics = decompose_topic(topic)
+
+		results = {}
+
+		subtopics.each do |subtopic|
+			results[subtopic] = research_subtopic(
+				topic: topic,
+				subtopic: subtopic
+			)
+		end
+
+		coverage = @aggregator.evaluate_coverage(
+			topic: topic,
+			subtopics: subtopics,
+			results: results
+		)
+
+		{
+			topic: topic,
+			subtopics: subtopics,
+			results: results,
+			coverage: coverage
+		}
+	end
 
   def decompose_topic(topic)
 		response = @chat.ask(<<~PROMPT)
