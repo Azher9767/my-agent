@@ -66,3 +66,5 @@ group :test do
 end
 
 gem "ruby_llm", "~> 1.16"
+
+gem "concurrent-ruby", "~> 1.3"

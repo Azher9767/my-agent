@@ -384,6 +384,7 @@ DEPENDENCIES
   brakeman
   bundler-audit
   capybara
+  concurrent-ruby (~> 1.3)
   debug
   image_processing (~> 1.2)
   importmap-rails
